@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deriv Binary + Backend DB + Referral - BIT316 FINAL</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'IBM Plex Sans',sans-serif;background:#0e0e0e;color:#c2c2c2}
+.deriv-banner{background:#ff444f;color:white;text-align:center;padding:5px;font-size:10px;font-weight:700}
+.deriv-header{height:48px;background:#0e0e0e;border-bottom:1px solid #2a2a2a;display:flex;align-items:center;justify-content:space-between;padding:0 12px;position:sticky;top:0;z-index:100}
+.deriv-logo{color:white;font-weight:700;font-size:18px;display:flex;gap:8px;align-items:center}.deriv-logo span{color:#ff444f}
+.bal-box{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;padding:6px 12px;font-size:12px;font-weight:700;color:white}
+.deriv-layout{display:grid;grid-template-columns:1fr 320px;min-height:calc(100vh - 53px)}
+.deriv-chart-area{background:#0e0e0e;display:flex;flex-direction:column}
+.chart-top{height:36px;background:#151515;border-bottom:1px solid #2a2a2a;display:flex;align-items:center;gap:8px;padding:0 10px;font-size:11px}
+.chart-type-btn{padding:4px 10px;background:#1a1a1a;border:1px solid #2a2a2a;color:#999;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer}.chart-type-btn.active{background:#2a2a2a;color:white;border-color:#ff444f}
+#tvChart{width:100%;height:340px;background:#0e0e0e}
+.ticks-bar{height:60px;background:#151515;border-top:1px solid #2a2a2a;border-bottom:1px solid #2a2a2a;display:flex;align-items:center;padding:0 10px;gap:4px;overflow:hidden}
+.tick-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0}
+.deriv-right{background:#151515;border-left:1px solid #2a2a2a;display:flex;flex-direction:column}
+.right-tabs{display:flex;background:#0e0e0e;border-bottom:1px solid #2a2a2a}
+.r-tab{flex:1;padding:10px;text-align:center;font-size:11px;font-weight:700;color:#666;cursor:pointer;border-bottom:2px solid transparent}.r-tab.active{color:white;border-color:#ff444f;background:#151515}
+.trade-panel{padding:12px;overflow:auto}
+.c-type-btn{padding:8px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;font-size:11px;font-weight:600;color:#999;cursor:pointer;text-align:center}.c-type-btn.active{background:#ff444f;color:white;border-color:#ff444f}
+.deriv-input{width:100%;height:38px;background:#0e0e0e;border:1px solid #2a2a2a;border-radius:4px;color:white;padding:0 10px;font-size:13px;margin:6px 0}
+.payout-box{background:#0e0e0e;border:1px solid #2a2a2a;border-radius:4px;padding:10px;margin:10px 0}
+.rise-btn{height:44px;background:#00a651;color:white;border:none;border-radius:4px;font-weight:700;font-size:13px;cursor:pointer;width:100%;margin:4px 0}.fall-btn{height:44px;background:#ff444f;color:white;border:none;border-radius:4px;font-weight:700;font-size:13px;cursor:pointer;width:100%;margin:4px 0}
+.digits-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:8px 0}.digit-cell{height:36px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer}.digit-cell.active{background:#ff444f;color:white}
+.stat-box{background:#0e0e0e;border:1px solid #2a2a2a;border-radius:4px;padding:8px;text-align:center}.stat-num{font-size:16px;font-weight:700;color:white}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px}
+.mcard{background:#151515;border:1px solid #2a2a2a;border-radius:8px;padding:20px;width:100%;max-width:420px}
+.btn{height:42px;border:none;border-radius:4px;font-weight:700;cursor:pointer;width:100%;margin-top:8px}.btn-red{background:#ff444f;color:white}.btn-dark{background:#1a1a1a;color:white;border:1px solid #2a2a2a}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:#ff444f;color:white;padding:10px 16px;border-radius:4px;opacity:0;transition:.3s;z-index:10000;font-weight:700;font-size:11px}.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:900px){.deriv-layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="deriv-banner">⚠️ DERIV BINARY LOOK + BACKEND DB + REFERRAL CODE+LINK - BIT316 STUDY - FAKE DEMO - LOCALSTORAGE + SQLITE DB</div>
+<div class="deriv-header"><div class="deriv-logo"><div style="width:28px;height:28px;background:#ff444f;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white">D</div>deriv <span style="font-size:11px;color:#999">| Binary + Backend DB</span></div><div style="display:flex;gap:8px;align-items:center"><div id="backendStatus" style="padding:4px 8px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;font-size:9px">DB: localStorage</div><div class="bal-box" id="bal">$0.00 DEMO</div><div id="uEmail" style="font-size:11px;color:#ff444f;font-weight:700"></div><div style="font-size:10px;color:#00a651">● LIVE</div></div></div>
+
+<div id="authM" class="modal"><div class="mcard">
+<h3 style="color:white">Enter Deriv Web - Backend Added</h3><p style="font-size:11px;color:#999;margin:8px 0">Now saves to SQLite DB backend + localStorage. Referral code+link works.</p>
+<div style="display:flex;gap:8px;margin:10px 0"><button id="tabIn" class="btn btn-red" style="flex:1;margin:0">Sign In</button><button id="tabUp" class="btn btn-dark" style="flex:1;margin:0">Create Account</button></div>
+<div id="inBox"><input id="siEmail" class="deriv-input" placeholder="Email" value="student@strathmore.edu"><input id="siPass" type="password" class="deriv-input" placeholder="Any" value="123"><button id="siBtn" class="btn btn-red" style="height:50px">👉 ENTER WEB (Backend + DB)</button><button onclick="enterWeb('guest@deriv.demo','Guest','')" class="btn btn-dark">⚡ GUEST INSTANT</button><div style="text-align:center;font-size:10px;color:#666;margin-top:8px">Auto-enter <span id="countdown">3</span>s</div></div>
+<div id="upBox" style="display:none"><input id="suName" class="deriv-input" placeholder="Full Name" value="John Doe"><input id="suEmail" class="deriv-input" placeholder="Email" value="john@deriv.demo"><input id="suRefInput" class="deriv-input" placeholder="Referral Code optional e.g. DERIV-JOHN-123"><input id="suPass" type="password" class="deriv-input" placeholder="Password" value="123"><div style="background:#0e0e0e;padding:8px;border-radius:4px;font-size:11px;border:1px solid #2a2a2a">Your Code: <b id="previewCode" style="color:#ff444f">DERIV-JOHN-847</b> | Link: <span style="font-size:9px" id="previewLink">?ref=DERIV-JOHN-847</span></div><button id="suBtn" class="btn btn-red" style="height:50px">👉 CREATE + SAVE TO DB + ENTER</button></div>
+</div></div>
+
+<div class="deriv-layout">
+<div class="deriv-chart-area">
+<div class="chart-top"><span style="font-weight:700;color:white">Volatility 100</span><span id="btcP" style="font-weight:700;color:white">$--</span><span id="btcChg" style="padding:2px 8px;border-radius:4px;background:#00a651;color:white;font-size:10px">--</span><button class="chart-type-btn active" data-type="candle">Candles</button><button class="chart-type-btn" data-type="line">Line</button><button class="chart-type-btn" data-type="area">Area</button></div>
+<div id="tvChart"></div>
+<div class="ticks-bar" id="ticksBar"><span style="font-size:10px;color:#666">Ticks Last Digit:</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;background:#151515;border-top:1px solid #2a2a2a"><div class="stat-box" style="border-radius:0"><div style="font-size:10px;color:#999">Last Digit</div><div class="stat-num" id="lastD">--</div><div style="font-size:10px" id="lastDType">--</div></div><div class="stat-box" style="border-radius:0;border-left:1px solid #2a2a2a;border-right:1px solid #2a2a2a"><div style="font-size:10px;color:#999">AI Signal</div><div class="stat-num" id="aiSignal" style="font-size:14px">ANALYZING</div><div style="font-size:10px" id="aiConf">--%</div></div><div class="stat-box" style="border-radius:0"><div style="font-size:10px;color:#999">Vol</div><div class="stat-num" id="volTxt" style="font-size:12px">--</div></div></div>
+<div style="background:#0e0e0e;padding:8px;border-top:1px solid #2a2a2a"><div style="font-size:10px;color:#999">Panes (Backend Connected)</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><button class="chart-type-btn active" data-pane="chart">Chart</button><button class="chart-type-btn" data-pane="refer">Referral Code+Link DB</button><button class="chart-type-btn" data-pane="deposit">Deposit DB</button><button class="chart-type-btn" data-pane="withdraw">Withdraw</button><button class="chart-type-btn" data-pane="history">History DB</button><button class="chart-type-btn" data-pane="account">Account DB</button></div></div>
+<div id="pane-chart" style="padding:10px;display:block"><div style="font-size:11px;color:#999">Chart movable. If backend running at localhost:3000, it saves to SQLite. Else fallback localStorage.</div></div>
+<div id="pane-refer" style="padding:12px;display:none;background:#151515;border-top:1px solid #2a2a2a"><b style="color:white">Referral Code + Link - Saved to DB Backend</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px"><div><div style="font-size:10px;color:#999">YOUR CODE (DB)</div><div id="myRefCode" style="font-family:monospace;font-size:16px;font-weight:800;color:#ff444f;background:#0e0e0e;border:1px dashed #ff444f;padding:10px;border-radius:4px;text-align:center;margin:6px 0">DERIV-GUEST-000</div><div style="display:flex;gap:6px"><button onclick="copyCode()" class="btn btn-dark" style="flex:1;height:32px;font-size:11px">Copy Code</button><button onclick="copyLink()" class="btn btn-dark" style="flex:1;height:32px;font-size:11px">Copy Link</button></div></div><div><div style="font-size:10px;color:#999">YOUR LINK (DB)</div><div id="myRefLink" style="font-size:10px;background:#0e0e0e;border:1px solid #2a2a2a;padding:10px;border-radius:4px;word-break:break-all;color:#999;margin:6px 0">https://site.vercel.app?ref=DERIV-GUEST-000</div><div style="font-size:10px">Referrals DB: <b id="refCount">0</b> | Earn DB: <b id="refEarn">$0</b></div><button id="fakeRef" class="btn btn-red" style="height:32px;font-size:11px;margin-top:6px">Simulate Friend +$5 (DB)</button></div></div><div style="margin-top:10px"><input id="testRefInput" class="deriv-input" placeholder="Enter code to validate from DB"><button id="testRefBtn" class="btn btn-dark" style="height:32px;font-size:11px">Validate from DB</button><div id="refHistory" style="font-size:11px;background:#0e0e0e;padding:8px;border-radius:4px;margin-top:8px;max-height:100px;overflow:auto">No referrals yet - DB empty</div></div></div>
+<div id="pane-deposit" style="padding:12px;display:none"><b>Deposit FAKE - Saves to DB backend</b><input id="depAmt" class="deriv-input" type="number" placeholder="1000"><button id="depBtn" class="btn btn-red">Deposit to DB</button><div style="font-size:10px;color:#999;margin-top:6px">If backend running, saves to SQLite txs table. Else localStorage.</div></div>
+<div id="pane-withdraw" style="padding:12px;display:none"><b>Withdraw FAKE</b><input id="withAmt" class="deriv-input" type="number" placeholder="500"><button id="withBtn" class="btn btn-dark">Withdraw</button></div>
+<div id="pane-history" style="padding:12px;display:none"><b>History - DB + localStorage</b><button id="clearH" style="font-size:10px;background:#1a1a1a;border:1px solid #2a2a2a;color:white;padding:4px 8px;border-radius:4px;float:right">Clear Local</button><div id="histList" style="margin-top:8px"></div></div>
+<div id="pane-account" style="padding:12px;display:none"><b>Account - From DB</b><input id="accName" class="deriv-input" placeholder="Name"><input id="accEmail" class="deriv-input" placeholder="Email"><div style="background:#0e0e0e;padding:10px;border-radius:4px;margin:8px 0;border:1px solid #2a2a2a"><div style="font-size:10px">Code DB:</div><div id="accRefCode" style="font-family:monospace;font-weight:800;color:#ff444f">--</div><div style="font-size:10px;margin-top:6px">Link DB:</div><div id="accRefLink" style="font-size:10px;word-break:break-all;color:#999">--</div></div><button id="saveAcc" class="btn btn-red">Save</button><button id="logoutBtn" class="btn btn-dark">Logout</button></div>
+</div>
+
+<div class="deriv-right">
+<div class="right-tabs"><div class="r-tab active" data-trade="risefall">Rise/Fall</div><div class="r-tab" data-trade="digits">Digits</div><div class="r-tab" data-trade="auto">AI Bot</div></div>
+<div id="trade-risefall" class="trade-panel"><div class="input-group"><div style="font-size:10px;color:#999">Stake (DEMO)</div><input id="stake" class="deriv-input" type="number" value="10"></div><div class="payout-box"><div style="display:flex;justify-content:space-between;font-size:11px"><span style="color:#999">Payout</span><span style="color:white;font-weight:700" id="payout">$19.50</span></div><div style="font-size:10px;color:#999;margin-top:4px">Last Digit: <b id="tradeLastD" style="color:white">--</b> | <span id="tradeLastDType">--</span></div></div><button class="rise-btn" id="riseBtn">▲ Rise - DEMO (DB)</button><button class="fall-btn" id="fallBtn">▼ Fall - DEMO (DB)</button><div style="margin-top:10px;background:#0e0e0e;border:1px solid #2a2a2a;border-radius:4px;padding:8px"><div style="font-size:10px;color:#999">AI Scanner</div><div style="font-size:11px;margin-top:4px" id="aiReason">AI analyzing...</div><div style="font-size:11px">MA: <span id="aiMA">--</span> Trend: <span id="aiTrend">--</span></div><button id="aiTradeBtn" class="btn btn-red" style="height:36px;font-size:11px">Follow AI (DB)</button></div></div>
+<div id="trade-digits" class="trade-panel" style="display:none"><div style="font-size:11px;font-weight:700;color:white">Odd/Even - Last Digit</div><div class="digits-grid" id="digitsGrid"></div><div style="display:flex;gap:6px"><button class="rise-btn" id="oddBtn" style="flex:1">Odd</button><button class="fall-btn" id="evenBtn" style="flex:1">Even</button></div><div id="digitStats" style="font-size:11px;background:#0e0e0e;padding:8px;border-radius:4px;margin-top:6px;border:1px solid #2a2a2a">--</div></div>
+<div id="trade-auto" class="trade-panel" style="display:none"><b style="color:white">Auto Bot AI + DB</b><input id="autoStake" class="deriv-input" type="number" value="10"><div style="display:flex;gap:6px"><button id="autoStart" class="btn btn-red" style="flex:1;margin:0">Start</button><button id="autoStop" class="btn btn-dark" style="flex:1;margin:0">Stop</button></div><div id="autoLog" style="background:#0e0e0e;border:1px solid #2a2a2a;padding:8px;border-radius:4px;font-size:11px;height:120px;overflow:auto;margin-top:8px">Idle</div><div style="margin-top:8px;font-size:11px">Code: <span id="quickCode" style="color:#ff444f;font-family:monospace;font-weight:800">--</span> Ref: <b id="quickCount">0</b> Earn <b id="quickEarn">$0</b><div id="quickLink" style="font-size:9px;word-break:break-all;color:#666">--</div></div></div>
+<div style="background:#0e0e0e;border-top:1px solid #2a2a2a;padding:10px;max-height:200px;overflow:auto"><div style="font-size:11px;color:white">Open Positions (DB)</div><div id="openPos" style="margin-top:6px;font-size:11px;color:#666">No positions</div></div>
+</div>
+</div>
+
+<div id="toast" class="toast"><span id="tText"></span></div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const BACKEND_URL = 'http://localhost:3000';
+let USE_BACKEND = true;
+let btc=0,candleData=[],ticks=[],chart,candleSeries,lineSeries,areaSeries,barSeries,volSeries,autoInt=null;
+let user=JSON.parse(localStorage.getItem('xm_deriv_user')||'null'),bal=parseFloat(localStorage.getItem('xm_deriv_bal')||'10000'),txs=JSON.parse(localStorage.getItem('xm_deriv_hist')||'[]'),positions=JSON.parse(localStorage.getItem('xm_deriv_pos')||'[]'),refC=parseInt(localStorage.getItem('xm_deriv_refC')||'0'),refE=parseFloat(localStorage.getItem('xm_deriv_refE')||'0'),refHist=JSON.parse(localStorage.getItem('xm_deriv_refHist')||'[]');
+function genCode(name){const c=(name||'USER').replace(/[^A-Z0-9]/gi,'').substring(0,4).toUpperCase()||'USER';return 'DERIV-'+c+'-'+Math.floor(100+Math.random()*900);}
+function fmt(v){return '$'+(v<1?v.toFixed(4):v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}))}
+function toast(m){$('tText').textContent=m;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),3500)}
+window.copyCode=()=>{navigator.clipboard.writeText($('myRefCode').textContent);toast('Copied Code: '+$('myRefCode').textContent);};
+window.copyLink=()=>{navigator.clipboard.writeText($('myRefLink').textContent);toast('Copied Link');};
+function save(){localStorage.setItem('xm_deriv_bal',bal);localStorage.setItem('xm_deriv_hist',JSON.stringify(txs));localStorage.setItem('xm_deriv_pos',JSON.stringify(positions));localStorage.setItem('xm_deriv_refC',refC);localStorage.setItem('xm_deriv_refE',refE);localStorage.setItem('xm_deriv_refHist',JSON.stringify(refHist));$('bal').textContent=fmt(bal)+' DEMO'+(USE_BACKEND?' (DB)':'');if(user)$('uEmail').textContent=user.email;renderH();renderPos();}
+function addTx(t,d,a){txs.unshift({time:new Date().toLocaleTimeString(),type:t,detail:d,amt:a,bal});save();}
+function renderH(){$('histList').innerHTML=txs.length?txs.map(x=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:11px"><div><b style="color:${x.type.includes('RISE')||x.type.includes('ODD')||x.type.includes('BUY')?'#00a651':'#ff444f'}">${x.type}</b><div style="color:#666;font-size:10px">${x.detail}</div></div><div>${x.amt?fmt(x.amt):''}</div></div>`).join(''):'<div style="color:#666">No history - DB shows real history</div>';}
+function renderPos(){if(!positions.length){$('openPos').innerHTML='<div style="color:#666">No open positions</div>';return;}$('openPos').innerHTML=positions.map((p,i)=>`<div style="padding:6px 0;border-bottom:1px solid #1a1a1a"><div style="display:flex;justify-content:space-between"><b style="color:${p.type.includes('RISE')?'#00a651':'#ff444f'}">${p.type}</b><span>${fmt((btc-p.entry)*0.1)}</span></div><button onclick="closePos(${i})" style="font-size:10px;background:#1a1a1a;border:1px solid #2a2a2a;color:white;padding:2px 6px;border-radius:4px">Close</button></div>`).join('');}
+window.closePos=i=>{positions.splice(i,1);save();toast('Closed');}
+async function updateRefBackend(email){
+  if(!USE_BACKEND||!email) return;
+  try{
+    const r=await fetch(BACKEND_URL+'/api/me/'+email);
+    const d=await r.json();
+    if(d.user){
+      $('backendStatus').textContent='DB: SQLite Connected';
+      $('backendStatus').style.background='#00a651';$('backendStatus').style.color='white';
+      $('myRefCode').textContent=d.user.ref_code;
+      $('myRefLink').textContent=window.location.origin+'?ref='+d.user.ref_code;
+      $('accRefCode').textContent=d.user.ref_code;
+      $('accRefLink').textContent=window.location.origin+'?ref='+d.user.ref_code;
+      $('quickCode').textContent=d.user.ref_code;
+      $('quickLink').textContent=window.location.origin+'?ref='+d.user.ref_code;
+      $('refCount').textContent=d.count;
+      $('refEarn').textContent='$'+d.earn;
+      $('quickCount').textContent=d.count;
+      $('quickEarn').textContent='$'+d.earn;
+      $('bal').textContent='$'+d.user.balance.toFixed(2)+' DEMO (DB)';
+      bal=d.user.balance;
+      $('refHistory').innerHTML=d.refs.length?d.refs.map(r=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1a1a1a"><span>${r.new_user_email} used ${r.referrer_code}</span><span style="color:#00a651">+$${r.bonus}</span></div>`).join(''):'No refs in DB - Share your code!';
+      if(d.txs.length){
+        $('histList').innerHTML=d.txs.map(t=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1a1a1a;font-size:11px"><div><b>${t.type}</b><div style="color:#666">${t.detail}</div></div><div>${t.amount>0?'+':''}${fmt(t.amount)}</div></div>`).join('');
+      }
+    }
+  }catch(e){ $('backendStatus').textContent='DB: localStorage (backend offline)'; USE_BACKEND=false; }
+}
+window.enterWeb=async (email,name,refInput)=>{
+  const ref = refInput || new URLSearchParams(window.location.search).get('ref') || '';
+  if(USE_BACKEND){
+    try{
+      const r=await fetch(BACKEND_URL+'/api/create-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,refCode:ref})});
+      const d=await r.json();
+      if(d.ok){
+        user={email:d.email,name,refCode:d.refCode}; localStorage.setItem('xm_deriv_user',JSON.stringify(user));
+        bal=d.balance; save(); $('authM').style.display='none'; toast('ENTERED + SAVED TO DB - Code: '+d.refCode+' Link: '+d.refLink); updateRefBackend(email); return;
+      }
+      if(d.error && d.error.includes('exists')){
+        const r2=await fetch(BACKEND_URL+'/api/sign-in',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+        const d2=await r2.json();
+        if(d2.ok){ user={email:d2.email,name:d2.name,refCode:d2.refCode}; localStorage.setItem('xm_deriv_user',JSON.stringify(user)); bal=d2.balance; save(); $('authM').style.display='none'; toast('ENTERED FROM DB - Code: '+d2.refCode); updateRefBackend(email); return; }
+      }
+    }catch(e){ console.log('Backend offline, using localStorage fallback'); USE_BACKEND=false; $('backendStatus').textContent='DB: localStorage'; }
+  }
+  let code=genCode(name||email); if(user&&user.refCode) code=user.refCode;
+  const u={email:email||'guest@deriv.demo',name:name||'Guest',refCode:code,referredBy:ref||null};
+  localStorage.setItem('xm_deriv_user',JSON.stringify(u)); user=u; $('authM').style.display='none'; save(); toast('ENTERED WEB (localStorage) - Code: '+code);
+  const link=window.location.origin+'?ref='+code; $('myRefCode').textContent=code; $('myRefLink').textContent=link; $('quickCode').textContent=code; $('quickLink').textContent=link; $('accRefCode').textContent=code; $('accRefLink').textContent=link;
+};
+function initChart(){const cont=$('tvChart');chart=LightweightCharts.createChart(cont,{layout:{background:{color:'#0e0e0e'},textColor:'#666'},grid:{vertLines:{color:'#151515'},horzLines:{color:'#151515'}},rightPriceScale:{borderColor:'#2a2a2a'},timeScale:{borderColor:'#2a2a2a',timeVisible:true},handleScroll:{mouseWheel:true,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:true},handleScale:{axisPressedMouseMove:true,mouseWheel:true,pinch:true}});candleSeries=chart.addCandlestickSeries({upColor:'#00a651',downColor:'#ff444f',borderVisible:false,wickUpColor:'#00a651',wickDownColor:'#ff444f'});lineSeries=chart.addLineSeries({color:'#ff444f',lineWidth:2,visible:false});areaSeries=chart.addAreaSeries({topColor:'rgba(255,68,79,0.3)',bottomColor:'rgba(0,0,0,0)',lineColor:'#ff444f',lineWidth:2,visible:false});let now=Math.floor(Date.now()/1000)-140*60;let price=65000;for(let i=0;i<140;i++){const o=price;price+=(Math.random()-0.5)*200;const h=Math.max(o,price)+Math.random()*80;const l=Math.min(o,price)-Math.random()*80;const c=price;candleData.push({time:now+i*60,open:o,high:h,low:l,close:c});ticks.push({time:now+i*60,value:c,digit:Math.floor(c)%10});}candleSeries.setData(candleData);lineSeries.setData(candleData.map(c=>({time:c.time,value:c.close})));areaSeries.setData(candleData.map(c=>({time:c.time,value:c.close})));chart.timeScale().fitContent();new ResizeObserver(()=>chart.applyOptions({width:cont.clientWidth,height:cont.clientHeight})).observe(cont);renderTicks();}
+function renderTicks(){const bar=$('ticksBar');const last30=ticks.slice(-30);bar.innerHTML='<span style="font-size:10px;color:#666;margin-right:8px">Ticks Last Digit:</span>'+last30.map(t=>`<div class="tick-dot" style="background:${t.digit%2===0?'#00a651':'#ff444f'}">${t.digit}</div>`).join('');const ld=last30.length?last30[last30.length-1].digit:0;$('lastD').textContent=ld;$('lastDType').textContent=ld%2===0?'EVEN':'ODD';$('tradeLastD').textContent=ld;$('tradeLastDType').textContent=ld%2===0?'EVEN':'ODD';const evens=last30.filter(t=>t.digit%2===0).length;$('digitStats').textContent=`Last 30: ${evens} Even, ${30-evens} Odd - Last ${ld}`;}
+function check(){if(user){$('authM').style.display='none'; if(USE_BACKEND) updateRefBackend(user.email); else {const link=window.location.origin+'?ref='+user.refCode; $('myRefCode').textContent=user.refCode; $('myRefLink').textContent=link; $('quickCode').textContent=user.refCode; $('quickLink').textContent=link; $('accRefCode').textContent=user.refCode; $('accRefLink').textContent=link;}}else{$('authM').style.display='flex';let c=3;const iv=setInterval(()=>{c--;const el=$('countdown');if(el)el.textContent=c;if(c<=0){clearInterval(iv);if(!user)enterWeb('auto@deriv.demo','Auto','');}},1000);}save();renderDigits();}
+function renderDigits(){const g=$('digitsGrid');g.innerHTML='';for(let i=0;i<=9;i++){const d=document.createElement('div');d.className='digit-cell';d.textContent=i;d.onclick=()=>{document.querySelectorAll('.digit-cell').forEach(x=>x.classList.remove('active'));d.classList.add('active');};g.appendChild(d);}}
+$('tabIn').onclick=()=>{$('inBox').style.display='block';$('upBox').style.display='none';};$('tabUp').onclick=()=>{$('inBox').style.display='none';$('upBox').style.display='block';};
+$('siBtn').onclick=()=>enterWeb($('siEmail').value.trim()||'student@deriv.demo','Student','');$('suBtn').onclick=()=>enterWeb($('suEmail').value.trim()||'new@deriv.demo',$('suName').value.trim()||'New',$('suRefInput').value.trim());
+$('suName').oninput=()=>{const c=genCode($('suName').value||'JOHN');$('previewCode').textContent=c;$('previewLink').textContent='?ref='+c;};
+document.querySelectorAll('.chart-type-btn[data-pane]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chart-type-btn[data-pane]').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('[id^="pane-"]').forEach(p=>p.style.display='none');const id='pane-'+b.dataset.pane;if($(id))$(id).style.display='block';});
+document.querySelectorAll('.chart-type-btn[data-type]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chart-type-btn[data-type]').forEach(x=>x.classList.remove('active'));b.classList.add('active');candleSeries.applyOptions({visible:b.dataset.type==='candle'});lineSeries.applyOptions({visible:b.dataset.type==='line'});areaSeries.applyOptions({visible:b.dataset.type==='area'});});
+document.querySelectorAll('.r-tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.r-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.querySelectorAll('[id^="trade-"]').forEach(p=>p.style.display='none');$('trade-'+t.dataset.trade).style.display='block';});
+function placeTrade(type,detail){if(!user)return toast('Enter web first');const stake=parseFloat($('stake').value||10);if(USE_BACKEND){fetch(BACKEND_URL+'/api/trade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,type,stake,entry:btc})}).then(r=>r.json()).then(d=>{if(d.ok){bal=d.balance; save(); updateRefBackend(user.email); toast(type+' saved to DB '+fmt(bal));}else toast(d.error||'Error');}).catch(()=>{positions.push({type,entry:btc});addTx(type,detail,-stake);});}else{positions.push({type,entry:btc});addTx(type,detail,-stake);toast(type+' placed DEMO');}}
+$('riseBtn').onclick=()=>placeTrade('RISE','Rise 10 ticks');$('fallBtn').onclick=()=>placeTrade('FALL','Fall 10 ticks');$('oddBtn').onclick=()=>placeTrade('ODD','Odd');$('evenBtn').onclick=()=>placeTrade('EVEN','Even');
+$('depBtn').onclick=async()=>{const v=parseFloat($('depAmt').value);if(!v)return alert('Amount');if(USE_BACKEND&&user){try{const r=await fetch(BACKEND_URL+'/api/deposit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,amount:v})});const d=await r.json();if(d.ok){bal=d.balance; save(); updateRefBackend(user.email); toast('DB Deposit +$'+v); return;}}catch(e){}}bal+=v;addTx('DEPOSIT','Deposit FAKE',v);toast('+'+fmt(v));};
+$('withBtn').onclick=()=>{const v=parseFloat($('withAmt').value);if(!v||v>bal)return toast('Insufficient');bal-=v;addTx('WITHDRAW','Withdraw FAKE',-v);toast('-'+fmt(v));};
+$('clearH').onclick=()=>{txs=[];save();};$('fakeRef').onclick=()=>{refC++;refE+=5;bal+=5;addTx('REFER','Referral +$5',5);save();toast('Friend +$5');};
+$('testRefBtn').onclick=async()=>{const c=$('testRefInput').value.trim().toUpperCase();if(!c)return;if(USE_BACKEND){try{const r=await fetch(BACKEND_URL+'/api/me/'+c);const d=await r.json();toast('Checking DB...');}catch(e){}}const found=localStorage.getItem('xm_deriv_user');toast('Local check: '+(user&&user.refCode===c?'Your own code':'Valid format '+c));};
+$('saveAcc').onclick=()=>{if(!user)return;user.name=$('accName').value;localStorage.setItem('xm_deriv_user',JSON.stringify(user));toast('Saved');};$('logoutBtn').onclick=()=>{localStorage.removeItem('xm_deriv_user');user=null;check();};
+function runAI(){if(candleData.length<10)return;const closes=candleData.slice(-20).map(c=>c.close);const ma5=closes.slice(-5).reduce((a,b)=>a+b,0)/5;const ma10=closes.slice(-10).reduce((a,b)=>a+b,0)/10;let sig='HOLD',conf=50;if(ma5>ma10){sig='RISE';conf=70+Math.random()*20;}else if(ma5<ma10){sig='FALL';conf=70+Math.random()*20;}else conf=45+Math.random()*15;$('aiSignal').textContent=sig;$('aiSignal').style.color=sig==='RISE'?'#00a651':sig==='FALL'?'#ff444f':'#999';$('aiConf').textContent=conf.toFixed(0)+'%';$('aiMA').textContent=fmt(ma5).replace('$','')+'/'+fmt(ma10).replace('$','');$('aiTrend').textContent=ma5>ma10?'UP':'DOWN';$('aiReason').textContent=sig!=='HOLD'?`${sig} - MA crossover ${conf.toFixed(0)}% - digit ${Math.floor(btc)%10}`:`HOLD - digit ${Math.floor(btc)%10}`;window._sig=sig;$('payout').textContent='$'+(parseFloat($('stake').value||10)*1.95).toFixed(2);}
+$('aiTradeBtn').onclick=()=>{if(window._sig&&window._sig!=='HOLD')placeTrade(window._sig,window._sig+' AI');else toast('HOLD');};
+$('autoStart').onclick=()=>{if(autoInt)return;autoInt=setInterval(()=>{if(window._sig&&window._sig!=='HOLD'){placeTrade(window._sig+' AUTO',window._sig+' Auto');$('autoLog').innerHTML+=new Date().toLocaleTimeString()+' '+window._sig+'<br>';}},4000);toast('Auto ON');};$('autoStop').onclick=()=>{clearInterval(autoInt);autoInt=null;toast('Auto OFF');};
+$('stake').oninput=()=>{$('payout').textContent='$'+(parseFloat($('stake').value||10)*1.95).toFixed(2);};
+async function fetchLive(){try{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');const d=await r.json();btc=d.bitcoin.usd;const now=Math.floor(Date.now()/1000);if(candleData.length){const last=candleData[candleData.length-1];if(now-last.time>=60){const nc={time:now,open:last.close,high:Math.max(last.close,btc)+40,low:Math.min(last.close,btc)-40,close:btc};candleData.push(nc);ticks.push({time:now,value:btc,digit:Math.floor(btc)%10});if(candleData.length>200){candleData.shift();ticks.shift();}candleSeries.setData(candleData);lineSeries.setData(candleData.map(c=>({time:c.time,value:c.close})));areaSeries.setData(candleData.map(c=>({time:c.time,value:c.close})));renderTicks();}else{last.close=btc;last.high=Math.max(last.high,btc);last.low=Math.min(last.low,btc);candleSeries.update(last);lineSeries.update({time:last.time,value:btc});areaSeries.update({time:last.time,value:btc});}}$('btcP').textContent=fmt(btc);const chg=d.bitcoin.usd_24h_change||0;$('btcChg').textContent=(chg>=0?'+':'')+chg.toFixed(2)+'%';runAI();}catch(e){}}
+initChart();check();fetchLive();setInterval(fetchLive,15000);setInterval(runAI,3000);
+})();
+</script>
+</body>
+</html>
